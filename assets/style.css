@@ -1,0 +1,37 @@
+@import url(https://fonts.googleapis.com/css?family=Space+Mono);
+
+.center {
+  margin-top: 50px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 50px;
+}
+
+body {
+  font-family: "Space Mono";
+}
+
+h1 {
+  font-size: 2rem;
+  margin: 0.67em 0;
+  text-align: center;
+}
+
+.rb_logo {
+  width: 176px;
+  height: 44px;
+}
+
+[type="range"].horizontal {
+  width: 400px
+}
+
+table.perf {
+  width: 12em;
+  table-layout: fixed;
+}
+
+td.hidden  { visibility: hidden; }
+td.visible { visibility: visible; }
+
+td.narrow { width: 20%; text-align: right; }
