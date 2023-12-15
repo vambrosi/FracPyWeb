@@ -11,71 +11,20 @@
 <body>
   <table class="center">
     <tr>
-      <td colspan="2"><h1>FracPy Web</h1></td>
+      <td colspan="2">
+        <h1>FracPy Web</h1>
+      </td>
     </tr>
     <tr>
       <td colspan="1">Mandelbrot set rendered in <span id="mb_runtime"></span> ms</td>
       <td colspan="1">Julia set calculated in <span id="julia_runtime"></span> ms</td>
     </tr>
     <tr>
-      <td colspan="1"><canvas id="mandelImage" style="border: 1px solid black"></canvas></td>
+      <td colspan="1"><canvas id="mandelImage" style="border: 1px solid black" tabindex='1'></canvas></td>
       <td colspan="1"><canvas id="juliaImage" style="border: 1px solid black"></canvas></td>
-      <td style="vertical-align: text-top;">
-        <table class="perf" border="0">
-          <tr>
-            <td class="narrow visible" id="w0_cell1">W0:</td>
-            <td><span id="w0"></span> ms</td>
-          </tr>
-          <tr>
-            <td class="narrow hidden" id="w1_cell1">W1:</td>
-            <td id="w1_cell2"><span id="w1"></span> ms</td>
-          </tr>
-          <tr>
-            <td class="narrow hidden" id="w2_cell1">W2:</td>
-            <td id="w2_cell2"><span id="w2"></span> ms</td>
-          </tr>
-          <tr>
-            <td class="narrow hidden" id="w3_cell1">W3:</td>
-            <td id="w3_cell2"><span id="w3"></span> ms</td>
-          </tr>
-          <tr>
-            <td class="narrow hidden" id="w4_cell1">W4:</td>
-            <td id="w4_cell2"><span id="w4"></span> ms</td>
-          </tr>
-          <tr>
-            <td class="narrow hidden" id="w5_cell1">W5:</td>
-            <td id="w5_cell2"><span id="w5"></span> ms</td>
-          </tr>
-          <tr>
-            <td class="narrow hidden" id="w6_cell1">W6:</td>
-            <td id="w6_cell2"><span id="w6"></span> ms</td>
-          </tr>
-          <tr>
-            <td class="narrow hidden" id="w7_cell1">W7:</td>
-            <td id="w7_cell2"><span id="w7"></span> ms</td>
-          </tr>
-          <tr>
-            <td class="narrow hidden" id="w8_cell1">W8:</td>
-            <td id="w8_cell2"><span id="w8"></span> ms</td>
-          </tr>
-          <tr>
-            <td class="narrow hidden" id="w9_cell1">W9:</td>
-            <td id="w9_cell2"><span id="w9"></span> ms</td>
-          </tr>
-          <tr>
-            <td class="narrow hidden" id="w10_cell1">W10:</td>
-            <td id="w10_cell2"><span id="w10"></span> ms</td>
-          </tr>
-          <tr>
-            <td class="narrow hidden" id="w11_cell1">W11:</td>
-            <td id="w11_cell2"><span id="w11"></span> ms</td>
-          </tr>
-        </table>
-      </td>
     </tr>
     <tr>
-      <td colspan="3">Coordinates: (<span id="x_complex_coord"></span>, <span
-          id="y_complex_coord"></span>)</td>
+      <td colspan="2">Coordinates: (<span id="x_complex_coord"></span>, <span id="y_complex_coord"></span>)</td>
     </tr>
     <tr>
       <td colspan="2">
@@ -127,7 +76,7 @@
     let MAX_ITERS = RANGE_MAX_ITERS.DEFAULT
 
     // Define max/min zoom level limits (PPU = pixels per unit in the complex plane)
-    const MAX_PPU = 6553600            // Allow for 16 zoom steps (100 * 2^16)
+    const MAX_PPU = 28147497671065600        // Allow for 44 zoom steps (100 * 2^44)
     const MIN_PPU = CANVAS_WIDTH / 4   // Start by showing entire Mandelbrot Set
     let PPU = MIN_PPU
 
@@ -225,7 +174,7 @@
 
         // Invoke all the workers
         worker_list.map((w, idx) => {
-          $id(`w${idx}_cell1`).style.backgroundColor = GREEN
+          // $id(`w${idx}_cell1`).style.backgroundColor = GREEN
           w.postMessage(gen_worker_msg('exec', idx, p_name, p_zx, p_zy))
         })
       }
@@ -277,7 +226,18 @@
       $id('y_complex_coord').innerHTML = Number.parseFloat(last_mandel.y_coord).toFixed(14)
 
       // Draw the new Julia Set
-      draw_fractal("julia", last_mandel.x_coord, last_mandel.y_coord)
+      if (livetracker) {
+        draw_fractal("julia", last_mandel.x_coord, last_mandel.y_coord)
+      }
+    }
+
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // Key press handler
+    var livetracker = true
+    const change_live_tracker = (event) => {
+      if (event.keyCode === 67) {
+        livetracker = !livetracker
+      }
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -310,6 +270,8 @@
     mCanvas.width = CANVAS_WIDTH
     mCanvas.height = CANVAS_HEIGHT
 
+    mCanvas.setAttribute("tabindex", 0)
+    mCanvas.addEventListener('keydown', change_live_tracker, false)
     mCanvas.addEventListener('mousemove', mouse_track(true), false)
     mCanvas.addEventListener('click', zoom(true), false)
     mCanvas.addEventListener('contextmenu', zoom(false), false)
@@ -373,8 +335,8 @@
             plot_time.wCount += 1
 
             // Update this worker's performance time
-            $id(`w${worker_id}_cell1`).style.backgroundColor = 'white'
-            $id(`w${worker_id}`).innerHTML = interval(times.exec)
+            // $id(`w${worker_id}_cell1`).style.backgroundColor = 'white'
+            // $id(`w${worker_id}`).innerHTML = interval(times.exec)
 
             // Have all the workers finished yet?
             if (plot_time.wCount === WORKERS) {
@@ -426,12 +388,12 @@
         // Create new set of workers
         for (let i = 0; i < WORKERS; i++) {
           // Worker 0 is always visible
-          if (i > 0) {
-            $id(`w${i}_cell1`).classList.remove("hidden")
-            $id(`w${i}_cell2`).classList.remove("hidden")
-            $id(`w${i}_cell1`).classList.add("visible")
-            $id(`w${i}_cell2`).classList.add("visible")
-          }
+          // if (i > 0) {
+          //   $id(`w${i}_cell1`).classList.remove("hidden")
+          //   $id(`w${i}_cell2`).classList.remove("hidden")
+          //   $id(`w${i}_cell1`).classList.add("visible")
+          //   $id(`w${i}_cell2`).classList.add("visible")
+          // }
 
           let w = new Worker('./js/worker.js')
 
@@ -439,19 +401,19 @@
           w.onmessage = worker_msg_handler
 
           // Initialise worker thread
-          $id(`w${i}_cell1`).style.backgroundColor = GREEN
+          // $id(`w${i}_cell1`).style.backgroundColor = GREEN
           w.postMessage(gen_worker_msg('init', i, 'mb', 0, 0, host_fns))
 
           worker_list.push(w)
         }
 
         // Switch off unused worker performance fields in the UI
-        for (let i = WORKERS; i < RANGE_WORKERS.MAX; i++) {
-          $id(`w${i}_cell1`).classList.remove("visible")
-          $id(`w${i}_cell2`).classList.remove("visible")
-          $id(`w${i}_cell1`).classList.add("hidden")
-          $id(`w${i}_cell2`).classList.add("hidden")
-        }
+        // for (let i = WORKERS; i < RANGE_WORKERS.MAX; i++) {
+        //   $id(`w${i}_cell1`).classList.remove("visible")
+        //   $id(`w${i}_cell2`).classList.remove("visible")
+        //   $id(`w${i}_cell1`).classList.add("hidden")
+        //   $id(`w${i}_cell2`).classList.add("hidden")
+        // }
       }
     }
 
